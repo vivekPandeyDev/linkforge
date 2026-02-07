@@ -1,3 +1,15 @@
 spring:
   application:
     name: linkforge
+  datasource:
+    hikari:
+      connection-timeout: 30000
+      idle-timeout: 30000
+      max-lifetime: 1800000
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  profiles:
+    active:
+      - dev
