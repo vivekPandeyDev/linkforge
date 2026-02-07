@@ -42,8 +42,8 @@ class UrlControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.shortUrl").exists())
-                .andExpect(jsonPath("$.shortUrl").value(expectedValue));
+                .andExpect(jsonPath("$.shortenCode").exists())
+                .andExpect(jsonPath("$.shortenCode").value(expectedValue));
     }
 
     @Test
