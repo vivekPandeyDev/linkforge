@@ -47,7 +47,7 @@ class UrlControllerTest {
     }
 
     @Test
-    void shouldRejectInvalidUrl() throws Exception {
+    void shouldReturnValidationErrorForInvalidLongUrl() throws Exception {
         //prepare
         var shortenRequest = new ShortenRequest("ftp://example.com");
         var body = objectMapper.writeValueAsString(shortenRequest);
@@ -55,7 +55,21 @@ class UrlControllerTest {
         mockMvc.perform(post("/api/v1/shorten")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
-                .andExpect(status().isBadRequest());
+                // status
+                .andExpect(status().isBadRequest())
+
+                // top-level fields
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.message").value("Validation failed"))
+
+                // error array
+                .andExpect(jsonPath("$.errors").isArray())
+                .andExpect(jsonPath("$.errors.length()").value(1))
+
+                // error details
+                .andExpect(jsonPath("$.errors[0].field").value("longUrl"))
+                .andExpect(jsonPath("$.errors[0].error")
+                        .value("longUrl must be a valid http or https URL"));
     }
 
     @Test
