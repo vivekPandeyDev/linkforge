@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1")
 @Slf4j
+@SuppressWarnings("unused")
 public class UrlController {
 
     private final UrlService service;

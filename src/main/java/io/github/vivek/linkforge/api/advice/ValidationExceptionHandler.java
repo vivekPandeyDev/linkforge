@@ -1,5 +1,6 @@
 package io.github.vivek.linkforge.api.advice;
 
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -11,6 +12,7 @@ import java.time.Instant;
 import java.util.List;
 
 @RestControllerAdvice
+@SuppressWarnings("unused")
 public class ValidationExceptionHandler {
 
     public static final String VALIDATION_FAILED = "Validation failed";
@@ -31,6 +33,31 @@ public class ValidationExceptionHandler {
                 VALIDATION_FAILED,
                 errors
         );
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ValidationErrorResponse handleConstraintViolation(
+            ConstraintViolationException ex) {
+
+        var errors = ex.getConstraintViolations()
+                .stream()
+                .map(violation -> new ValidationError(
+                        extractFieldName(violation.getPropertyPath().toString()),
+                        violation.getMessage()
+                ))
+                .toList();
+
+        return new ValidationErrorResponse(
+                Instant.now(),
+                VALIDATION_FAILED,
+                errors
+        );
+    }
+
+    private String extractFieldName(String path) {
+        int lastDot = path.lastIndexOf('.');
+        return lastDot != -1 ? path.substring(lastDot + 1) : path;
     }
 
     private ValidationError toValidationError(FieldError error) {
