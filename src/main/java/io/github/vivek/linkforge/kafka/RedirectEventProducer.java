@@ -6,6 +6,8 @@ import org.jspecify.annotations.NonNull;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
+import static io.github.vivek.linkforge.utility.JsonUtils.toJson;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -13,11 +15,13 @@ public class RedirectEventProducer {
 
     private static final String TOPIC = "redirect-events";
 
-    private final KafkaTemplate<@NonNull String,@NonNull String> kafkaTemplate;
+    private final KafkaTemplate<@NonNull String, @NonNull String> kafkaTemplate;
 
 
-    public void send(String shortCode) {
-        kafkaTemplate.send(TOPIC, shortCode)
+    public void send(String shortCode, String originalUrl) {
+        var redirectEvent = RedirectEvent.from(shortCode, originalUrl);
+        log.info("redirect event produced: {}", redirectEvent);
+        kafkaTemplate.send(TOPIC, toJson(redirectEvent))
                 .whenComplete((result, ex) -> {
                     if (ex != null) {
                         log.error("Failed to publish redirect event for {}", shortCode, ex);
@@ -26,4 +30,5 @@ public class RedirectEventProducer {
                     }
                 });
     }
+
 }
