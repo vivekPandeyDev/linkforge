@@ -13,3 +13,10 @@ spring:
   profiles:
     active:
       - dev
+
+# snowflake properties
+snowflake:
+  epoch: 1770522213000   # 2026-02-08
+  worker-id-bits: 10
+  sequence-bits: 12
+  worker-id: 1
