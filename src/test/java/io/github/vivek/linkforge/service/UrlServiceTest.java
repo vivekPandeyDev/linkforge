@@ -11,6 +11,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
+import java.time.LocalDateTime;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
@@ -44,9 +48,6 @@ class UrlServiceTest {
         saved.setId(snowflakeId);
         saved.setShortCode(expectedShortCode);
         saved.setLongUrl(longUrl);
-        //  when redis ops for value execute it prevents operation
-        doNothing().when(valueOperations).set(anyString(), anyString());  // not mandatory but for learning
-        // just returning value operation
         when(redis.opsForValue()).thenReturn(valueOperations);
         when(idGenerator.nextId()).thenReturn(snowflakeId);
         when(persistence.save(expectedShortCode, longUrl)).thenReturn(saved);
@@ -95,5 +96,76 @@ class UrlServiceTest {
         verify(persistence).save(shortCode, longUrl);
     }
 
+    // -------------------------------
+    //  Cache Hit 🎯
+    // -------------------------------
+    @Test
+    void shouldReturnCachedValueWhenPresentInRedis() {
+        // given
+        String code = "abc123";
+        String cachedUrl = "https://example.com";
+
+        when(redis.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get("url:" + code)).thenReturn(cachedUrl);
+
+        // when
+        String result = urlService.resolvedUrl(code);
+
+        // then
+        assertEquals(cachedUrl, result);
+        verify(valueOperations).get("url:" + code);
+        verifyNoInteractions(persistence);
+        verify(valueOperations, never()).set(anyString(), anyString());
+    }
+
+    // -------------------------------
+    //  Cache MISS 🔍  DB HIT 🎯
+    // -------------------------------
+    @Test
+    void ShouldFetchFromDbAndCacheWhenRedisMiss() {
+        // given
+        String code = "xyz789";
+        String dbUrl = "https://spring.io";
+        UrlMapping urlMapping = new UrlMapping();
+        urlMapping.setId(1L);
+        urlMapping.setShortCode(code);
+        urlMapping.setLongUrl(dbUrl);
+        urlMapping.setCreatedAt(LocalDateTime.now());
+
+        when(redis.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get("url:" + code)).thenReturn(null);
+        when(persistence.findByShortCode(code)).thenReturn(Optional.of(urlMapping));
+
+        // when
+        String result = urlService.resolvedUrl(code);
+
+        // then
+        assertEquals(dbUrl, result);
+
+        // verify running of get,find,set methods
+        verify(valueOperations).get("url:" + code);
+        verify(persistence).findByShortCode(code);
+        verify(valueOperations).set("url:" + code, dbUrl);
+    }
+
+    // -------------------------------
+    //  Cache MISS 🔍  DB MISS 🔍
+    // -------------------------------
+    @Test
+    void shouldThrowExceptionWhenUrlNotFound() {
+        // given
+        String code = "missing";
+        when(redis.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get("url:" + code)).thenReturn(null);
+        when(persistence.findByShortCode(code)).thenReturn(Optional.empty());
+
+        // when / then
+        assertThrows(NoSuchElementException.class, () -> urlService.resolvedUrl(code));
+
+        verify(valueOperations).get("url:" + code);
+        verify(persistence).findByShortCode(code);
+        // set operation should not be run
+        verify(valueOperations, never()).set(anyString(), anyString());
+    }
 
 }

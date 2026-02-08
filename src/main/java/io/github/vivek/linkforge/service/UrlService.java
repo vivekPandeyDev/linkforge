@@ -33,6 +33,15 @@ public class UrlService {
 
     public String resolvedUrl(String code) {
         log.info("code for url shorten: {}", code);
-        return "https://www.google.com";
+        final var cached = redis.opsForValue().get("url:" + code);
+        if (cached != null) {
+            log.info("cached original url for shorten code {} : {}", code, cached);
+            return cached;
+        }
+        final var mapping = persistence.findByShortCode(code).orElseThrow();
+        String longUrl = mapping.getLongUrl();
+        log.info("original url for shorten code {} : {}", code, longUrl);
+        redis.opsForValue().set("url:" + code, longUrl);
+        return longUrl;
     }
 }

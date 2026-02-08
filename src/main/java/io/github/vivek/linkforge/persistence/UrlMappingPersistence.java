@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -23,5 +25,9 @@ public class UrlMappingPersistence {
         log.debug("Persisted UrlMapping [id={}, shortCode={}]", saved.getId(), saved.getShortCode());
 
         return saved;
+    }
+
+    public Optional<UrlMapping> findByShortCode(String shortCode){
+        return repository.findByShortCode(shortCode);
     }
 }
