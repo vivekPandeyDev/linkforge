@@ -1,4 +1,8 @@
 spring:
+  data:
+    redis:
+      timeout: 1s
+      connect-timeout: 1s
   application:
     name: linkforge
   datasource:
