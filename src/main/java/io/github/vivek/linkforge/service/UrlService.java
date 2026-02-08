@@ -1,5 +1,6 @@
 package io.github.vivek.linkforge.service;
 
+import io.github.vivek.linkforge.kafka.RedirectEventProducer;
 import io.github.vivek.linkforge.persistence.UrlMappingPersistence;
 import io.github.vivek.linkforge.utility.Base62;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +17,7 @@ public class UrlService {
     private final UrlMappingPersistence persistence;
     private final SnowflakeIdGenerator idGenerator;
     private final StringRedisTemplate redis;
+    private final RedirectEventProducer producer;
 
     @Transactional
     public String generatedShortenCode(String longUrl) {
@@ -36,12 +38,14 @@ public class UrlService {
         final var cached = redis.opsForValue().get("url:" + code);
         if (cached != null) {
             log.info("cached original url for shorten code {} : {}", code, cached);
+            producer.send(code);
             return cached;
         }
         final var mapping = persistence.findByShortCode(code).orElseThrow();
         String longUrl = mapping.getLongUrl();
         log.info("original url for shorten code {} : {}", code, longUrl);
         redis.opsForValue().set("url:" + code, longUrl);
+        producer.send(code);
         return longUrl;
     }
 }

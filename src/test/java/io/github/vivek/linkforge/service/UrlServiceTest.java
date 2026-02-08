@@ -1,6 +1,7 @@
 package io.github.vivek.linkforge.service;
 
 import io.github.vivek.linkforge.entity.UrlMapping;
+import io.github.vivek.linkforge.kafka.RedirectEventProducer;
 import io.github.vivek.linkforge.persistence.UrlMappingPersistence;
 import io.github.vivek.linkforge.utility.Base62;
 import org.junit.jupiter.api.Test;
@@ -33,6 +34,9 @@ class UrlServiceTest {
 
     @Mock
     private ValueOperations<String, String> valueOperations;
+
+    @Mock
+    private RedirectEventProducer producer;
 
     @InjectMocks
     private UrlService urlService;
@@ -132,6 +136,8 @@ class UrlServiceTest {
         urlMapping.setLongUrl(dbUrl);
         urlMapping.setCreatedAt(LocalDateTime.now());
 
+        doNothing().when(producer).send(code);
+
         when(redis.opsForValue()).thenReturn(valueOperations);
         when(valueOperations.get("url:" + code)).thenReturn(null);
         when(persistence.findByShortCode(code)).thenReturn(Optional.of(urlMapping));
@@ -146,6 +152,7 @@ class UrlServiceTest {
         verify(valueOperations).get("url:" + code);
         verify(persistence).findByShortCode(code);
         verify(valueOperations).set("url:" + code, dbUrl);
+        verify(producer).send(code);
     }
 
     // -------------------------------
