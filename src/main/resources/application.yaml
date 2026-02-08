@@ -1,4 +1,10 @@
 spring:
+  kafka:
+    properties:
+      # ---- AdminClient timeouts ----
+      request.timeout.ms: 3000
+      default.api.timeout.ms: 3000
+      metadata.fetch.timeout.ms: 3000
   data:
     redis:
       timeout: 1s

@@ -1,6 +1,11 @@
 server:
   port: 3000
 spring:
+  kafka:
+    bootstrap-servers: localhost:29092
+  jpa:
+    hibernate:
+      ddl-auto: update
   data:
     redis:
       host: localhost
