@@ -35,17 +35,17 @@ public class UrlService {
 
     public String resolvedUrl(String code) {
         log.info("code for url shorten: {}", code);
-        final var cached = redis.opsForValue().get("url:" + code);
-        if (cached != null) {
-            log.info("cached original url for shorten code {} : {}", code, cached);
-            producer.send(code);
-            return cached;
+        final var cachedUrl = redis.opsForValue().get("url:" + code);
+        if (cachedUrl != null) {
+            log.info("cachedUrl original url for shorten code {} : {}", code, cachedUrl);
+            producer.send(code, cachedUrl);
+            return cachedUrl;
         }
         final var mapping = persistence.findByShortCode(code).orElseThrow();
         String longUrl = mapping.getLongUrl();
         log.info("original url for shorten code {} : {}", code, longUrl);
         redis.opsForValue().set("url:" + code, longUrl);
-        producer.send(code);
+        producer.send(code, longUrl);
         return longUrl;
     }
 }

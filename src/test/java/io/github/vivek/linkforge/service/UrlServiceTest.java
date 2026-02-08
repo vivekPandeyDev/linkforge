@@ -136,7 +136,7 @@ class UrlServiceTest {
         urlMapping.setLongUrl(dbUrl);
         urlMapping.setCreatedAt(LocalDateTime.now());
 
-        doNothing().when(producer).send(code);
+        doNothing().when(producer).send(code, dbUrl);
 
         when(redis.opsForValue()).thenReturn(valueOperations);
         when(valueOperations.get("url:" + code)).thenReturn(null);
@@ -152,7 +152,7 @@ class UrlServiceTest {
         verify(valueOperations).get("url:" + code);
         verify(persistence).findByShortCode(code);
         verify(valueOperations).set("url:" + code, dbUrl);
-        verify(producer).send(code);
+        verify(producer).send(code,dbUrl);
     }
 
     // -------------------------------
