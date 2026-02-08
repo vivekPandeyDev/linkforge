@@ -35,7 +35,7 @@ class UrlControllerTest {
         var shortenRequest = new ShortenRequest("https://example.com/very/long/path");
         var body = objectMapper.writeValueAsString(shortenRequest);
         var expectedValue = "my-short-url-response";
-        when(urlService.shorten(any())).thenReturn(expectedValue);
+        when(urlService.generatedShortenCode(any())).thenReturn(expectedValue);
 
         // perform
         mockMvc.perform(post("/api/v1/shorten")

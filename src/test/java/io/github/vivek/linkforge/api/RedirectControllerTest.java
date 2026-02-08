@@ -28,7 +28,7 @@ class RedirectControllerTest {
     void shouldRedirectToResolvedUrl() throws Exception {
         // given
         String code = "abc123";
-        when(urlService.resolve(code)).thenReturn("https://example.com/very/long/path");
+        when(urlService.resolvedUrl(code)).thenReturn("https://example.com/very/long/path");
 
         // when + then
         mockMvc.perform(get("/api/v1/" + code))

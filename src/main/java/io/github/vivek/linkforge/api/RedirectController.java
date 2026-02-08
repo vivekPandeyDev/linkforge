@@ -27,7 +27,7 @@ public class RedirectController {
     @GetMapping("/{code}")
     public ResponseEntity<@NonNull Void> redirect(@NotBlank(message = "url shorten code should not be empty") @PathVariable String code) {
         log.info("redirect url code: {}",code);
-        final var resolvedUrl = service.resolve(code);
+        final var resolvedUrl = service.resolvedUrl(code);
         return ResponseEntity.status(302)
                 .location(URI.create(resolvedUrl))
                 .build();
