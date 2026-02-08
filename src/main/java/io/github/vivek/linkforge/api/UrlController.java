@@ -26,9 +26,9 @@ public class UrlController {
 
     @PostMapping("/shorten")
     public ResponseEntity<@NonNull ShortenResponse> shorten(@Valid @RequestBody ShortenRequest shortenRequest) {
-        log.info("shorten url request: {}", shortenRequest);
+        log.debug("shorten url request: {}", shortenRequest);
         final var shortenResponse = new ShortenResponse(service.generatedShortenCode(shortenRequest.longUrl()));
-        log.info("shorten url response: {}", shortenResponse);
+        log.debug("shorten url response: {}", shortenResponse);
         return ResponseEntity.ok(shortenResponse);
     }
 }

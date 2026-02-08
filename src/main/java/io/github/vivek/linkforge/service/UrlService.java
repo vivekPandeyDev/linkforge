@@ -21,11 +21,11 @@ public class UrlService {
 
     @Transactional
     public String generatedShortenCode(String longUrl) {
-        log.info("Generating snowflake id for url: {}", longUrl);
+        log.debug("Generating snowflake id for url: {}", longUrl);
         final var snowflakeId = idGenerator.nextId();
         final var shortenCode = Base62.encode(snowflakeId);
-        log.info("Generated Snowflake id: {}", snowflakeId);
-        log.info("Generated shorten code: {}", shortenCode);
+        log.debug("Generated Snowflake id: {}", snowflakeId);
+        log.debug("Generated shorten code: {}", shortenCode);
 
         var savedUrlMapping = persistence.save(shortenCode, longUrl);
         // adding shorten code as key
@@ -34,16 +34,16 @@ public class UrlService {
     }
 
     public String resolvedUrl(String code) {
-        log.info("code for url shorten: {}", code);
+        log.debug("code for url shorten: {}", code);
         final var cachedUrl = redis.opsForValue().get("url:" + code);
         if (cachedUrl != null) {
-            log.info("cachedUrl original url for shorten code {} : {}", code, cachedUrl);
+            log.debug("cachedUrl original url for shorten code {} : {}", code, cachedUrl);
             producer.send(code, cachedUrl);
             return cachedUrl;
         }
         final var mapping = persistence.findByShortCode(code).orElseThrow();
         String longUrl = mapping.getLongUrl();
-        log.info("original url for shorten code {} : {}", code, longUrl);
+        log.debug("original url for shorten code {} : {}", code, longUrl);
         redis.opsForValue().set("url:" + code, longUrl);
         producer.send(code, longUrl);
         return longUrl;

@@ -20,7 +20,7 @@ public class RedirectEventProducer {
 
     public void send(String shortCode, String originalUrl) {
         var redirectEvent = RedirectEvent.from(shortCode, originalUrl);
-        log.info("redirect event produced: {}", redirectEvent);
+        log.debug("redirect event produced: {}", redirectEvent);
         kafkaTemplate.send(TOPIC, toJson(redirectEvent))
                 .whenComplete((result, ex) -> {
                     if (ex != null) {
