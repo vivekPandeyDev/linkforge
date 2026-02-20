@@ -1,5 +1,6 @@
 package io.github.vivek.linkforge.service;
 
+import io.github.vivek.linkforge.api.advice.LinkNotFoundException;
 import io.github.vivek.linkforge.kafka.RedirectEventProducer;
 import io.github.vivek.linkforge.persistence.UrlMappingPersistence;
 import io.github.vivek.linkforge.utility.Base62;
@@ -41,7 +42,7 @@ public class UrlService {
             producer.send(code, cachedUrl);
             return cachedUrl;
         }
-        final var mapping = persistence.findByShortCode(code).orElseThrow();
+        final var mapping = persistence.findByShortCode(code).orElseThrow(() -> new LinkNotFoundException(code));
         String longUrl = mapping.getLongUrl();
         log.debug("original url for shorten code {} : {}", code, longUrl);
         redis.opsForValue().set("url:" + code, longUrl);
