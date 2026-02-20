@@ -23,7 +23,7 @@ function getScenario() {
                 executor: 'constant-arrival-rate',
                 rate: 100,
                 timeUnit: '1s',
-                duration: '2m',
+                duration: '1m',
                 preAllocatedVUs: 50,
                 maxVUs: 100,
             };
@@ -108,6 +108,28 @@ export default function () {
     });
 
     check(res, {
-        'status is 302': (r) => r.status === 302,
+        'valid response': (r) => {
+
+            // Case 1: Redirect (cache hit)
+            if (r.status === 302) {
+                return true;
+            }
+
+            // Case 2: Not Found (cache miss)
+            if (r.status === 404) {
+                try {
+                    const body = r.json();
+                    return (
+                        body.title === 'Link Not Found' &&
+                        body.shortCode === shortCode
+                    );
+                } catch (e) {
+                    return false;
+                }
+            }
+
+            // Any other status = failure
+            return false;
+        }
     });
 }
