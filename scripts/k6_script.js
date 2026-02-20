@@ -105,6 +105,7 @@ export default function () {
 
     const res = http.get(`${BASE_URL}/api/v1/${shortCode}`, {
         redirects: 0,
+        tags: { name: 'redirect_endpoint' }
     });
 
     check(res, {
