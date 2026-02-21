@@ -1,6 +1,6 @@
 package io.github.vivek.linkforge.service;
 
-import io.github.vivek.linkforge.repo.UrlRepository;
+import io.github.vivek.linkforge.persistence.UrlMappingPersistence;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,12 +12,12 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class BloomRebuildService {
 
-    private final UrlRepository repository;
+    private final UrlMappingPersistence persistence;
     private final RBloomFilter<String> bloomFilter;
 
     @Transactional
     public void rebuildBloom() {
-        repository.streamAllShortCodes().forEach(bloomFilter::add);
+        persistence.findAllShortCodes().forEach(bloomFilter::add);
         log.info("Adding rebuild bloom filter: {}", bloomFilter.count());
     }
 }
