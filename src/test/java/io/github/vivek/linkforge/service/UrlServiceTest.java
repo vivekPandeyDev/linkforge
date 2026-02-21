@@ -10,6 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.redisson.api.RBloomFilter;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
@@ -37,6 +38,9 @@ class UrlServiceTest {
 
     @Mock
     private RedirectEventProducer producer;
+
+    @Mock
+    private RBloomFilter<String> bloomFilter;
 
     @InjectMocks
     private UrlService urlService;
@@ -109,6 +113,7 @@ class UrlServiceTest {
         String code = "abc123";
         String cachedUrl = "https://example.com";
 
+        when(bloomFilter.contains(code)).thenReturn(true);
         when(redis.opsForValue()).thenReturn(valueOperations);
         when(valueOperations.get("url:" + code)).thenReturn(cachedUrl);
 
@@ -138,6 +143,7 @@ class UrlServiceTest {
 
         doNothing().when(producer).send(code, dbUrl);
 
+        when(bloomFilter.contains(code)).thenReturn(true);
         when(redis.opsForValue()).thenReturn(valueOperations);
         when(valueOperations.get("url:" + code)).thenReturn(null);
         when(persistence.findByShortCode(code)).thenReturn(Optional.of(urlMapping));
@@ -162,6 +168,7 @@ class UrlServiceTest {
     void shouldThrowExceptionWhenUrlNotFound() {
         // given
         String code = "missing";
+        when(bloomFilter.contains(code)).thenReturn(true);
         when(redis.opsForValue()).thenReturn(valueOperations);
         when(valueOperations.get("url:" + code)).thenReturn(null);
         when(persistence.findByShortCode(code)).thenReturn(Optional.empty());
@@ -173,6 +180,19 @@ class UrlServiceTest {
         verify(persistence).findByShortCode(code);
         // set operation should not be run
         verify(valueOperations, never()).set(anyString(), anyString());
+    }
+
+    @Test
+    void shouldRejectImmediatelyWhenBloomSaysNo() {
+
+        String code = "invalid";
+
+        when(bloomFilter.contains(code)).thenReturn(false);
+
+        assertThrows(LinkNotFoundException.class, () -> urlService.resolvedUrl(code));
+
+        verifyNoInteractions(redis);
+        verifyNoInteractions(persistence);
     }
 
 }

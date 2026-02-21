@@ -6,6 +6,7 @@ import io.github.vivek.linkforge.persistence.UrlMappingPersistence;
 import io.github.vivek.linkforge.utility.Base62;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RBloomFilter;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +20,7 @@ public class UrlService {
     private final SnowflakeIdGenerator idGenerator;
     private final StringRedisTemplate redis;
     private final RedirectEventProducer producer;
+    private final RBloomFilter<String> bloomFilter;
 
     @Transactional
     public String generatedShortenCode(String longUrl) {
@@ -29,6 +31,8 @@ public class UrlService {
         log.debug("Generated shorten code: {}", shortenCode);
 
         var savedUrlMapping = persistence.save(shortenCode, longUrl);
+        // adding shorten code to bloom filter
+        bloomFilter.add(shortenCode);
         // adding shorten code as key
         redis.opsForValue().set("url:" + shortenCode, longUrl);
         return savedUrlMapping.getShortCode();
@@ -36,6 +40,9 @@ public class UrlService {
 
     public String resolvedUrl(String code) {
         log.debug("code for url shorten: {}", code);
+        if (!bloomFilter.contains(code)) {
+            throw new LinkNotFoundException(code);
+        }
         final var cachedUrl = redis.opsForValue().get("url:" + code);
         if (cachedUrl != null) {
             log.debug("cachedUrl original url for shorten code {} : {}", code, cachedUrl);

@@ -24,6 +24,8 @@ repositories {
 	mavenCentral()
 }
 
+val redissonVersion = project.property("redissonVersion") as String
+
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
@@ -31,6 +33,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
     implementation("org.springframework.boot:spring-boot-starter-kafka")
+	implementation("org.redisson:redisson-spring-boot-starter:$redissonVersion")
 	compileOnly("org.projectlombok:lombok")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	runtimeOnly("org.postgresql:postgresql")
