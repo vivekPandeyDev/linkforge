@@ -1,5 +1,6 @@
 package io.github.vivek.linkforge.service;
 
+import io.github.vivek.linkforge.api.advice.LinkNotFoundException;
 import io.github.vivek.linkforge.entity.UrlMapping;
 import io.github.vivek.linkforge.kafka.RedirectEventProducer;
 import io.github.vivek.linkforge.persistence.UrlMappingPersistence;
@@ -13,7 +14,6 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
 import java.time.LocalDateTime;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -167,7 +167,7 @@ class UrlServiceTest {
         when(persistence.findByShortCode(code)).thenReturn(Optional.empty());
 
         // when / then
-        assertThrows(NoSuchElementException.class, () -> urlService.resolvedUrl(code));
+        assertThrows(LinkNotFoundException.class, () -> urlService.resolvedUrl(code));
 
         verify(valueOperations).get("url:" + code);
         verify(persistence).findByShortCode(code);

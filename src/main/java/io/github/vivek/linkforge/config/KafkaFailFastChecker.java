@@ -5,12 +5,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.ListTopicsOptions;
+import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.core.KafkaAdmin;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@Profile("!test")
 public class KafkaFailFastChecker {
 
     private final KafkaAdmin kafkaAdmin;
