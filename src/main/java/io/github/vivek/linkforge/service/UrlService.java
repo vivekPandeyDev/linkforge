@@ -23,14 +23,14 @@ public class UrlService {
     private final RBloomFilter<String> bloomFilter;
 
     @Transactional
-    public String generatedShortenCode(String longUrl) {
+    public String generatedShortenCode(String longUrl,String email) {
         log.debug("Generating snowflake id for url: {}", longUrl);
         final var snowflakeId = idGenerator.nextId();
         final var shortenCode = Base62.encode(snowflakeId);
         log.debug("Generated Snowflake id: {}", snowflakeId);
         log.debug("Generated shorten code: {}", shortenCode);
 
-        var savedUrlMapping = persistence.save(shortenCode, longUrl);
+        var savedUrlMapping = persistence.save(shortenCode, longUrl,email);
         // adding shorten code to bloom filter
         bloomFilter.add(shortenCode);
         // adding shorten code as key

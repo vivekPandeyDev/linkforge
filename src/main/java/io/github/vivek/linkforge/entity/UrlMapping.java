@@ -38,6 +38,14 @@ public class UrlMapping {
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(
+            name = "user_id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "fk_url_mappings_user_id")
+    )
+    private User user;
+
 
     @PrePersist
     public void prePersist() {

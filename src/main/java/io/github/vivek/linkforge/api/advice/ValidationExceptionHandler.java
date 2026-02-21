@@ -20,12 +20,23 @@ public class ValidationExceptionHandler {
     public static final String VALIDATION_FAILED = "Validation failed";
 
     @ExceptionHandler(LinkNotFoundException.class)
-    public ResponseEntity<ProblemDetail> handleNotFound(LinkNotFoundException ex) {
+    public ResponseEntity<ProblemDetail> handleLinkNotFound(LinkNotFoundException ex) {
 
         ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
         pd.setTitle("Link Not Found");
         pd.setDetail(ex.getMessage());
         pd.setProperty("shortCode", ex.getCode());
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(pd);
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ProblemDetail> handleUserNotFound(UserNotFoundException ex) {
+
+        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
+        pd.setTitle("User Not Found");
+        pd.setDetail(ex.getMessage());
+        pd.setProperty("email", ex.getEmail());
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(pd);
     }

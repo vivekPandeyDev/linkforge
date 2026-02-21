@@ -49,6 +49,7 @@ class UrlServiceTest {
     void shouldGenerateShortenCode() {
         // given
         String longUrl = "https://example.com";
+        String email = "jo@samaritans.org";
         long snowflakeId = 123456789L;
         String expectedShortCode = Base62.encode(snowflakeId);
 
@@ -58,28 +59,28 @@ class UrlServiceTest {
         saved.setLongUrl(longUrl);
         when(redis.opsForValue()).thenReturn(valueOperations);
         when(idGenerator.nextId()).thenReturn(snowflakeId);
-        when(persistence.save(expectedShortCode, longUrl)).thenReturn(saved);
+        when(persistence.save(expectedShortCode, longUrl,email)).thenReturn(saved);
 
         // when
-        String result = urlService.generatedShortenCode(longUrl);
+        String result = urlService.generatedShortenCode(longUrl,email);
 
         // then
         assertEquals(expectedShortCode, result);
 
         verify(idGenerator).nextId();
-        verify(persistence).save(expectedShortCode, longUrl);
+        verify(persistence).save(expectedShortCode, longUrl,email);
     }
 
     @Test
     void shouldFailWhenSnowflakeFails() {
         String longUrl = "https://example.com";
-
+        String email = "jo@samaritans.org";
         when(idGenerator.nextId())
                 .thenThrow(new IllegalStateException("Clock moved backwards"));
 
         assertThrows(
                 IllegalStateException.class,
-                () -> urlService.generatedShortenCode(longUrl)
+                () -> urlService.generatedShortenCode(longUrl,email)
         );
 
         verifyNoInteractions(persistence);
@@ -90,18 +91,18 @@ class UrlServiceTest {
         String longUrl = "https://example.com";
         long snowflakeId = 123L;
         String shortCode = Base62.encode(snowflakeId);
-
+        String email = "jo@samaritans.org";
         when(idGenerator.nextId()).thenReturn(snowflakeId);
-        when(persistence.save(shortCode, longUrl))
+        when(persistence.save(shortCode, longUrl,email))
                 .thenThrow(new RuntimeException("DB unavailable"));
 
         assertThrows(
                 RuntimeException.class,
-                () -> urlService.generatedShortenCode(longUrl)
+                () -> urlService.generatedShortenCode(longUrl,email)
         );
 
         verify(idGenerator).nextId();
-        verify(persistence).save(shortCode, longUrl);
+        verify(persistence).save(shortCode, longUrl,email);
     }
 
     // -------------------------------

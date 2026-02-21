@@ -39,10 +39,10 @@ class UrlControllerTest {
     @Test
     void shouldAcceptValidUrl() throws Exception {
         //prepare
-        var shortenRequest = new ShortenRequest("https://example.com/very/long/path");
+        var shortenRequest = new ShortenRequest("https://example.com/very/long/path","jo@samaritans.org");
         var body = objectMapper.writeValueAsString(shortenRequest);
         var expectedValue = "my-short-url-response";
-        when(urlService.generatedShortenCode(any())).thenReturn(expectedValue);
+        when(urlService.generatedShortenCode(any(),any())).thenReturn(expectedValue);
 
         // perform
         mockMvc.perform(post("/api/v1/shorten")
@@ -56,7 +56,7 @@ class UrlControllerTest {
     @Test
     void shouldReturnValidationErrorForInvalidLongUrl() throws Exception {
         //prepare
-        var shortenRequest = new ShortenRequest("ftp://example.com");
+        var shortenRequest = new ShortenRequest("ftp://example.com","jo@samaritans.org");
         var body = objectMapper.writeValueAsString(shortenRequest);
 
         mockMvc.perform(post("/api/v1/shorten")
@@ -82,7 +82,7 @@ class UrlControllerTest {
     @Test
     void shouldRejectBlankUrl() throws Exception {
         //prepare
-        var shortenRequest = new ShortenRequest("");
+        var shortenRequest = new ShortenRequest("","jo@samaritans.org");
         var body = objectMapper.writeValueAsString(shortenRequest);
 
         mockMvc.perform(post("/api/v1/shorten")
