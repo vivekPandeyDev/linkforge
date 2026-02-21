@@ -2,6 +2,8 @@ package io.github.vivek.linkforge.api.advice;
 
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -16,6 +18,17 @@ import java.util.List;
 public class ValidationExceptionHandler {
 
     public static final String VALIDATION_FAILED = "Validation failed";
+
+    @ExceptionHandler(LinkNotFoundException.class)
+    public ResponseEntity<ProblemDetail> handleNotFound(LinkNotFoundException ex) {
+
+        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
+        pd.setTitle("Link Not Found");
+        pd.setDetail(ex.getMessage());
+        pd.setProperty("shortCode", ex.getCode());
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(pd);
+    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)

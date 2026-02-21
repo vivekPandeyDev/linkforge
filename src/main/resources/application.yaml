@@ -1,7 +1,4 @@
 spring:
-  mvc:
-    problemdetails:
-      enabled: true
   kafka:
     properties:
       # ---- AdminClient timeouts ----
